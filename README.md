@@ -7,4 +7,5 @@ chrome://extensions
 https://discord.com
 https://ripenos.web.app
 https://www.gmail.com
+www.google.com
 MORE SOON
