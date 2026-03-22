@@ -6,5 +6,5 @@ https://github.com/crosbreaker/skiovox-141
 chrome://extensions
 https://discord.com
 https://ripenos.web.app
-https://www.mail.google.com
+https://www.gmail.com
 MORE SOON
