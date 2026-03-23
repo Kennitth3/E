@@ -9,4 +9,5 @@ https://ripenos.web.app
 https://www.gmail.com
 www.google.com
 https://chatgpt.com
+https://eaglerdevs.github.io/Eaglercraft-1.20/
 MORE SOON
