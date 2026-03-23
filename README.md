@@ -14,4 +14,5 @@ https://gohosted.app
 https://frolicking-raindrop-c95a33.netlify.app
 https://netlify.com
 https://chrose.netlify.app/detail/skiovox/
+chrome://file-manager
 MORE SOON
