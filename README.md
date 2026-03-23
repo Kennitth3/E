@@ -13,4 +13,5 @@ https://eaglerdevs.github.io/Eaglercraft-1.20/
 https://gohosted.app
 https://frolicking-raindrop-c95a33.netlify.app
 https://netlify.com
+https://chrose.netlify.app/detail/skiovox/
 MORE SOON
