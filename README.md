@@ -22,4 +22,5 @@ https://jaydenyorithebeast.github.io/EaglerCraftX-1.20-File-html/
 https://dustinbrett.com
 https://metallic.eu.org/
 https://eaglercraftz-1204.vercel.app
+https://blooket.com
 MORE SOON
