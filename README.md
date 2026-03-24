@@ -17,4 +17,5 @@ https://chrose.netlify.app/detail/skiovox/
 chrome://file-manager
 https://symmetrical-waddle-g4jpqwr56q66cpwj9-25567.app.github.dev/
 https://github.com/codespaces/new
+https://eaglercraft.42web.io
 MORE SOON
