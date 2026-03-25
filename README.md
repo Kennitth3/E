@@ -25,4 +25,5 @@ https://eaglercraftz-1204.vercel.app
 https://blooket.com
 https://itch.io
 https://desmos.com
+https://blacket.org
 MORE SOON
