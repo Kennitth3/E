@@ -28,4 +28,5 @@ https://desmos.com
 https://blacket.org
 https://tacocat-cat.github.io/Eaglercraft-1.20.4/
 https://kennitth3.github.io/E/print-one-page.html
+chrome://version
 MORE SOON
