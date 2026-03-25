@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print One Page</title>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      margin: 0;
+      padding: 40px;
+      background: #f0f0f0;
+    }
+
+    .page {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0 auto;
+      background: white;
+      padding: 1in;
+      box-sizing: border-box;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .page h1 {
+      font-size: 2em;
+      margin-top: 0;
+      color: #111;
+    }
+
+    .page p {
+      font-size: 1em;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .print-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 32px;
+      font-size: 1em;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .print-btn:hover {
+      background: #1d4ed8;
+    }
+
+    @media print {
+      body {
+        background: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .page {
+        width: 100%;
+        min-height: auto;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        page-break-after: avoid;
+      }
+
+      .print-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="print-btn" onclick="window.print()">🖨️ Print This Page</button>
+
+  <div class="page">
+    <h1>Your Title Here</h1>
+    <p>Replace this content with whatever you want to print. This area represents a single 8.5 × 11 inch page.</p>
+    <p>Edit the HTML to add your own text, images, tables, or any content you need.</p>
+  </div>
+
+</body>
+</html>
