@@ -4,6 +4,16 @@
         <title>HI</title>
     </head>
     <body>
-        <button onclick='window.location.href="chrome://version"'>Open</button>
+        <script>
+            let amount = 0;
+
+            function checkamount() {
+                if (amount !== 1000) {
+                    window.open('https://www.google.com');
+                    amount += 0.1;
+                    checkamount();
+                }
+            checkamount()
+        </script>
     </body>
 </html>
