@@ -1,22 +1,65 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-    <head>
-        <title>Lets try again</title>
-    </head>
-    <body>
-        <script>
-            let amount = 0;
+<head>
+  <meta charset="utf-8">
+  <title>Focus & Timing Logger</title>
+  <style>
+    body { font-family: monospace; background:#111; color:#0f0; }
+    #log { white-space: pre-wrap; max-height: 80vh; overflow:auto; border:1px solid #0f0; padding:10px; }
+    button { margin:5px; }
+  </style>
+</head>
+<body>
+  <h2>Focus & Event Logger</h2>
+  <button onclick="clearLog()">Clear</button>
+  <button onclick="openTestWindow()">Open Test Window</button>
+  <div id="log"></div>
 
-            function checkamount() {
-                if (amount =< 10000) {
-                    window.open('https://www.google.com');
-                    amount += 0.1;
-                    checkamount();
-                }
-                else if (amount === 10000) {
-                    alert("should work")
-            }
-            checkamount()
-        </script>
-    </body>
+<script>
+const logEl = document.getElementById('log');
+function log(msg) {
+  const t = performance.now().toFixed(2);
+  logEl.textContent += `[${t} ms] ${msg}\n`;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function clearLog() { logEl.textContent = ""; }
+
+window.addEventListener('focus', () => log('WINDOW FOCUS'));
+window.addEventListener('blur', () => log('WINDOW BLUR'));
+document.addEventListener('visibilitychange', () =>
+  log('VISIBILITY: ' + document.visibilityState)
+);
+
+document.addEventListener('keydown', (e) =>
+  log(`KEYDOWN: ${e.key} (ctrl:${e.ctrlKey} shift:${e.shiftKey})`)
+);
+
+function openTestWindow() {
+  log('Opening window...');
+  const w = window.open('about:blank', '_blank');
+  if (!w) {
+    log('Popup blocked');
+    return;
+  }
+  w.document.write(`
+    <title>Child</title>
+    <h3>Child window</h3>
+    <script>
+      function l(m){ opener.postMessage({type:'child', msg:m, t:performance.now()}, '*'); }
+      window.addEventListener('focus', ()=>l('child focus'));
+      window.addEventListener('blur', ()=>l('child blur'));
+      document.addEventListener('visibilitychange', ()=>l('child visibility: '+document.visibilityState));
+      document.addEventListener('keydown', (e)=>l('child keydown: '+e.key));
+    <\/script>
+  `);
+}
+
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'child') {
+    log(`[child ${e.data.t.toFixed(2)} ms] ${e.data.msg}`);
+  }
+});
+</script>
+</body>
 </html>
