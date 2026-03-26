@@ -1,22 +1,28 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Focus & Timing Logger</title>
-  <style>
-    body { font-family: monospace; background:#111; color:#0f0; }
-    #log { white-space: pre-wrap; max-height: 80vh; overflow:auto; border:1px solid #0f0; padding:10px; }
-    button { margin:5px; }
-  </style>
+<meta charset="utf-8">
+<title>Race Condition Tester</title>
+<style>
+body { font-family: monospace; background:#111; color:#0f0; }
+#log { white-space: pre-wrap; max-height: 75vh; overflow:auto; border:1px solid #0f0; padding:10px; }
+button { margin:5px; }
+</style>
 </head>
 <body>
-  <h2>Focus & Event Logger</h2>
-  <button onclick="clearLog()">Clear</button>
-  <button onclick="openTestWindow()">Open Test Window</button>
-  <div id="log"></div>
+
+<h2>Race Condition Tester</h2>
+<button onclick="clearLog()">Clear</button>
+<button onclick="runTest('none')">Test: No Action</button>
+<button onclick="runTest('focus')">Test: Refocus</button>
+<button onclick="runTest('spam')">Test: Key Spam</button>
+<button onclick="runTest('combo')">Test: Combo</button>
+
+<div id="log"></div>
 
 <script>
 const logEl = document.getElementById('log');
+
 function log(msg) {
   const t = performance.now().toFixed(2);
   logEl.textContent += `[${t} ms] ${msg}\n`;
@@ -25,41 +31,95 @@ function log(msg) {
 
 function clearLog() { logEl.textContent = ""; }
 
-window.addEventListener('focus', () => log('WINDOW FOCUS'));
-window.addEventListener('blur', () => log('WINDOW BLUR'));
-document.addEventListener('visibilitychange', () =>
-  log('VISIBILITY: ' + document.visibilityState)
-);
+let testStart = 0;
+let childOpened = 0;
+let firstFocus = 0;
+let lastBlur = 0;
+let keyRegistered = false;
 
-document.addEventListener('keydown', (e) =>
-  log(`KEYDOWN: ${e.key} (ctrl:${e.ctrlKey} shift:${e.shiftKey})`)
-);
+function runTest(mode) {
+  log(`\n=== TEST: ${mode} ===`);
+  keyRegistered = false;
+  firstFocus = 0;
+  lastBlur = 0;
 
-function openTestWindow() {
-  log('Opening window...');
+  testStart = performance.now();
+
   const w = window.open('about:blank', '_blank');
   if (!w) {
     log('Popup blocked');
     return;
   }
+
+  childOpened = performance.now();
+
   w.document.write(`
     <title>Child</title>
-    <h3>Child window</h3>
     <script>
-      function l(m){ opener.postMessage({type:'child', msg:m, t:performance.now()}, '*'); }
-      window.addEventListener('focus', ()=>l('child focus'));
-      window.addEventListener('blur', ()=>l('child blur'));
-      document.addEventListener('visibilitychange', ()=>l('child visibility: '+document.visibilityState));
-      document.addEventListener('keydown', (e)=>l('child keydown: '+e.key));
+      function send(type, extra="") {
+        opener.postMessage({
+          type,
+          t: performance.now(),
+          extra
+        }, "*");
+      }
+
+      window.addEventListener('focus', ()=>send('focus'));
+      window.addEventListener('blur', ()=>send('blur'));
+      document.addEventListener('visibilitychange', ()=>send('visibility', document.visibilityState));
+      document.addEventListener('keydown', (e)=>send('keydown', e.key));
     <\/script>
   `);
+
+  // ACTIONS TO TEST TIMING EFFECTS
+  if (mode === "focus") {
+    setTimeout(() => window.focus(), 5);
+  }
+
+  if (mode === "spam") {
+    setTimeout(() => {
+      for (let i = 0; i < 10; i++) {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key:'a'}));
+      }
+    }, 5);
+  }
+
+  if (mode === "combo") {
+    setTimeout(() => {
+      window.focus();
+      document.dispatchEvent(new KeyboardEvent('keydown', {key:'a'}));
+    }, 5);
+  }
 }
 
+// RECEIVE CHILD EVENTS
 window.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'child') {
-    log(`[child ${e.data.t.toFixed(2)} ms] ${e.data.msg}`);
+  const {type, t, extra} = e.data;
+
+  if (type === 'focus') {
+    if (!firstFocus) firstFocus = t;
+    log(`[child ${t.toFixed(2)}] FOCUS`);
+  }
+
+  if (type === 'blur') {
+    lastBlur = t;
+    log(`[child ${t.toFixed(2)}] BLUR`);
+
+    // CALCULATE LIFETIME
+    const lifetime = (lastBlur - childOpened).toFixed(2);
+    log(`>>> Lifetime: ${lifetime} ms`);
+  }
+
+  if (type === 'visibility') {
+    log(`[child ${t.toFixed(2)}] VISIBILITY: ${extra}`);
+  }
+
+  if (type === 'keydown') {
+    keyRegistered = true;
+    log(`[child ${t.toFixed(2)}] KEYDOWN: ${extra}`);
   }
 });
 </script>
+
 </body>
 </html>
