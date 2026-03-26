@@ -8,11 +8,13 @@
             let amount = 0;
 
             function checkamount() {
-                if (amount !== 1000) {
+                if (amount === 0) {
                     window.open('https://www.google.com');
                     amount += 0.1;
                     checkamount();
                 }
+                else if (amount === 10000) {
+                    document.innerHtml = "<h1>Done, if does not work try again</h1>"
             }
             checkamount()
         </script>
