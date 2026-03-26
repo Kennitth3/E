@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Race Condition Tester</title>
+<title>Hidden Window Tracker</title>
 <style>
 body { font-family: monospace; background:#111; color:#0f0; }
 #log { white-space: pre-wrap; max-height: 75vh; overflow:auto; border:1px solid #0f0; padding:10px; }
@@ -11,12 +11,9 @@ button { margin:5px; }
 </head>
 <body>
 
-<h2>Race Condition Tester</h2>
+<h2>Hidden / Alive Window Tracker</h2>
 <button onclick="clearLog()">Clear</button>
-<button onclick="runTest('none')">Test: No Action</button>
-<button onclick="runTest('focus')">Test: Refocus</button>
-<button onclick="runTest('spam')">Test: Key Spam</button>
-<button onclick="runTest('combo')">Test: Combo</button>
+<button onclick="openTrackedWindow()">Open Tracked Window</button>
 
 <div id="log"></div>
 
@@ -31,30 +28,26 @@ function log(msg) {
 
 function clearLog() { logEl.textContent = ""; }
 
-let testStart = 0;
-let childOpened = 0;
-let firstFocus = 0;
-let lastBlur = 0;
-let keyRegistered = false;
+let lastHeartbeat = 0;
+let heartbeatInterval = null;
+let hiddenSince = null;
+let alive = false;
 
-function runTest(mode) {
-  log(`\n=== TEST: ${mode} ===`);
-  keyRegistered = false;
-  firstFocus = 0;
-  lastBlur = 0;
-
-  testStart = performance.now();
+function openTrackedWindow() {
+  log("\n=== OPEN TRACKED WINDOW ===");
 
   const w = window.open('about:blank', '_blank');
   if (!w) {
-    log('Popup blocked');
+    log("Popup blocked");
     return;
   }
 
-  childOpened = performance.now();
+  alive = true;
+  lastHeartbeat = performance.now();
+  hiddenSince = null;
 
   w.document.write(`
-    <title>Child</title>
+    <title>Tracked</title>
     <script>
       function send(type, extra="") {
         opener.postMessage({
@@ -64,59 +57,68 @@ function runTest(mode) {
         }, "*");
       }
 
+      // lifecycle events
       window.addEventListener('focus', ()=>send('focus'));
       window.addEventListener('blur', ()=>send('blur'));
       document.addEventListener('visibilitychange', ()=>send('visibility', document.visibilityState));
-      document.addEventListener('keydown', (e)=>send('keydown', e.key));
+
+      // HEARTBEAT (proves it's still alive even if hidden)
+      setInterval(() => {
+        send('heartbeat');
+      }, 50);
     <\/script>
   `);
 
-  // ACTIONS TO TEST TIMING EFFECTS
-  if (mode === "focus") {
-    setTimeout(() => window.focus(), 5);
-  }
+  // Monitor for death (no heartbeat)
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+  heartbeatInterval = setInterval(() => {
+    const now = performance.now();
 
-  if (mode === "spam") {
-    setTimeout(() => {
-      for (let i = 0; i < 10; i++) {
-        document.dispatchEvent(new KeyboardEvent('keydown', {key:'a'}));
+    if (alive && now - lastHeartbeat > 200) {
+      alive = false;
+      log("💀 WINDOW DESTROYED (heartbeat stopped)");
+
+      if (hiddenSince) {
+        const duration = (now - hiddenSince).toFixed(2);
+        log(`👻 Hidden lifetime before death: ${duration} ms`);
       }
-    }, 5);
-  }
-
-  if (mode === "combo") {
-    setTimeout(() => {
-      window.focus();
-      document.dispatchEvent(new KeyboardEvent('keydown', {key:'a'}));
-    }, 5);
-  }
+    }
+  }, 50);
 }
 
-// RECEIVE CHILD EVENTS
+// RECEIVE EVENTS
 window.addEventListener('message', (e) => {
   const {type, t, extra} = e.data;
 
-  if (type === 'focus') {
-    if (!firstFocus) firstFocus = t;
-    log(`[child ${t.toFixed(2)}] FOCUS`);
-  }
+  if (type === 'heartbeat') {
+    lastHeartbeat = performance.now();
 
-  if (type === 'blur') {
-    lastBlur = t;
-    log(`[child ${t.toFixed(2)}] BLUR`);
-
-    // CALCULATE LIFETIME
-    const lifetime = (lastBlur - childOpened).toFixed(2);
-    log(`>>> Lifetime: ${lifetime} ms`);
+    if (!alive) {
+      alive = true;
+      log("⚠️ Heartbeat resumed (unexpected)");
+    }
   }
 
   if (type === 'visibility') {
     log(`[child ${t.toFixed(2)}] VISIBILITY: ${extra}`);
+
+    if (extra === 'hidden') {
+      hiddenSince = performance.now();
+      log("👻 ENTERED HIDDEN STATE (still alive)");
+    }
+
+    if (extra === 'visible') {
+      hiddenSince = null;
+      log("👁️ RETURNED TO VISIBLE");
+    }
   }
 
-  if (type === 'keydown') {
-    keyRegistered = true;
-    log(`[child ${t.toFixed(2)}] KEYDOWN: ${extra}`);
+  if (type === 'focus') {
+    log(`[child ${t.toFixed(2)}] FOCUS`);
+  }
+
+  if (type === 'blur') {
+    log(`[child ${t.toFixed(2)}] BLUR`);
   }
 });
 </script>
