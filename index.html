@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>HI</title>
+        <title>Lets try again</title>
     </head>
     <body>
         <script>
             let amount = 0;
 
             function checkamount() {
-                if (amount === 0) {
+                if (amount =< 10000) {
                     window.open('https://www.google.com');
                     amount += 0.1;
                     checkamount();
                 }
                 else if (amount === 10000) {
-                    document.innerHtml = "<h1>Done, if does not work try again</h1>"
+                    alert("should work")
             }
             checkamount()
         </script>
